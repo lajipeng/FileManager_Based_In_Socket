@@ -20,7 +20,6 @@ class FileTcpServer(socketserver.BaseRequestHandler):
                                        
     def sendfile(self, filename):
         print("start send")
-        # self.request.send('ready'.encode())
         try:
             f = open(filename, 'rb')
             while True:
@@ -94,17 +93,21 @@ class FileTcpServer(socketserver.BaseRequestHandler):
             print("send success")
         except:
             self.request.send('EOF'.encode())
-
+    # put代表用户需要存储文件，根据文件的类型（txt\jpg\video）执行不同的接收模式
+    # get代表用户需要取文件，根据文件的类型（txt\jpg\video）执行不同的发送模式
     def handle(self):
+        # 显示连接对象
         print("get connection from :",self.client_address)
         while True:
             try:
+                # 接收用户请求
                 data = self.request.recv(1024).decode()
-                print("get data:", data)   
+                print("get client command:", data) 
                 if not data:
                     print("break the connection")
                     break                
                 else:
+                    
                     action, filename, filetype = data.split()
                     if action == "put":
                         if filetype == 'txt':

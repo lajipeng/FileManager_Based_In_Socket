@@ -5,13 +5,13 @@ import sys
 import time
 
 class fileClient:
-
+    # 创建客户的套接字。AF_INET 指示底层网络使用的IPv4，SOCK_STREAM指示套接字类型
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+    # 将服务器的端口号serverPort与该套接字关联起来
     def connect(self, ip, port):
         self.sock.connect((ip, port))
-
+    # sendFile 执行打开文件并且发送数据，文件发送完毕之后向服务器发送“EOF”表示传输已经完成
     def sendFile(self, filename):
         f = open(filename, 'rb')
         while True:
@@ -24,7 +24,7 @@ class fileClient:
         f.close()
         time.sleep(0.5)
         self.sock.sendall('EOF'.encode())
-
+    # sendFile 执行打开文件并且写入接收的数据，收到“EOF”表示传输已经完成
     def recvFile(self, filename):
         f = open(filename, 'wb')
         while True:
@@ -88,11 +88,14 @@ class fileClient:
         print(data)
         if data == 'ready':
             return True
-
+    # command 为用户输入的命令行，我们根据用户输入的信息判断执行哪一类操作
     def input(self, command):
         if not command:
             return
         action, filename, filetype = command.split()
+        # put代表用户需要存储文件，根据文件的类型（txt\jpg\video）执行不同的发送模式
+        # 在发送之前，需要调用self.confirm(command)确认服务器是否已经准备接收数据，
+        # 接到服务器指示后，返回True继续执行相应的发送模式
         if action == 'put':
             if filetype == 'txt':
                 if self.confirm(command):
@@ -112,7 +115,7 @@ class fileClient:
             else:
                 pass
 
-
+        # get代表用户需要取文件，根据文件的类型（txt\jpg\video）执行不同的接收模式
         elif action == 'get':
             if filetype == 'txt':
                 self.sock.send(command.encode())
@@ -127,7 +130,7 @@ class fileClient:
                 pass
         else:
             pass
-
+    # 关闭套接口
     def close(self):
         self.sock.close()
 
