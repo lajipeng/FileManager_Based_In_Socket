@@ -134,26 +134,69 @@ class fileClient:
     def close(self):
         self.sock.close()
 
+#密码星号打印
+def encryption():
+    import msvcrt, os
+    print('Please input your password：', end='', flush=True)
+    li = []
+    while 1:
+        ch = msvcrt.getch()
+        #回车
+        if ch == b'\r':
+            return b''.join(li).decode() #把list转换为字符串返回
+            break
+        #退格
+        elif ch == b'\x08':
+            if li:
+                li.pop()
+                msvcrt.putch(b'\b')
+                msvcrt.putch(b' ')
+                msvcrt.putch(b'\b')
+        #Esc
+        elif ch == b'\x1b':
+            break
+        else:
+            li.append(ch)
+            msvcrt.putch(b'*')
+    return b''.join(li).decode()
+
 if __name__ == '__main__':
     fc = fileClient()
     IP_fileManager = input("Please into the fileManager IP：")
     print ("Connecting: ", IP_fileManager)
     fc.connect(IP_fileManager, 1010)
+    init_usrname= "Wang Peng"
+    init_password= "AA"
+    flag0=0
+    flag1=0
+while True:    
     nameClient = input("Please input your username：")
-    passWord = input("Please input your password：")
-    print("Loading...")
-    print("Welcome back！",nameClient)
-    try:
-        while True:
-            command = input("Please input your command：(put/get filename.txt/jpg/avi txt/jpg/video)\n")
-            fc.input(command)
-            YN = input("Do you want to continue?(Y/N)\n")
-            if(YN == 'N'):
-                break
-            elif(YN == 'Y'):
-                continue
+    if nameClient==init_usrname:
+        while flag0<3:
+            passWord = encryption()
+            if passWord==init_password:
+                print("Loading...")
+                print("Welcome back！",nameClient)
+                try:
+                    while True:
+                        command = input("Please input your command：(put/get filename.txt/jpg/avi txt/jpg/video)\n")
+                        fc.input(command)
+                        YN = input("Do you want to continue?(Y/N)\n")
+                        if(YN == 'N'):
+                            break
+                        elif(YN == 'Y'):
+                            continue
+                        else:
+                            print("Input error! Quit")
+                            break
+                except:
+                    print('error! Quit')
             else:
-                print("Input error! Quit")
-                break
-    except:
-        print('error! Quit')
+                flag0+=1
+                if flag0<=2:
+                    print('\r')
+                    print('Wrong Password,enter again!')
+        print("You have tried three times, Quit")
+        sys.exit(0)
+    else:
+        print ('Wrong Username,enter again!')

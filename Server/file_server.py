@@ -136,7 +136,7 @@ class FileTcpServer(socketserver.BaseRequestHandler):
                                            
                                        
 if __name__ == "__main__":
-    host = '192.168.1.103'
+    host = '10.223.240.198'#192.168.1.103
     port = 1010
     s = socketserver.ThreadingTCPServer((host,port), FileTcpServer)
     s.serve_forever()
