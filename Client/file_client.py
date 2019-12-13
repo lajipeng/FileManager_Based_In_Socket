@@ -130,6 +130,14 @@ class fileClient:
                 pass
         else:
             pass
+    def sendCipher(self, cipher):
+        self.sock.send(cipher.encode())
+        data = self.sock.recv(4096).decode()
+        if data == 'right':
+            return True
+        else:
+            return False
+
     # 关闭套接口
     def close(self):
         self.sock.close()
@@ -174,7 +182,7 @@ while True:
     if nameClient==init_usrname:
         while flag0<3:
             passWord = encryption()
-            if passWord==init_password:
+            if fc.sendCipher(passWord):
                 print("Loading...")
                 print("Welcome back！",nameClient)
                 try:
@@ -196,6 +204,7 @@ while True:
                 if flag0<=2:
                     print('\r')
                     print('Wrong Password,enter again!')
+        print('\r')
         print("You have tried three times, Quit")
         sys.exit(0)
     else:

@@ -93,10 +93,17 @@ class FileTcpServer(socketserver.BaseRequestHandler):
             print("send success")
         except:
             self.request.send('EOF'.encode())
+    def confirm(self,data):
+        init_password = "AA"
+        if data == init_password:
+            self.request.send('right'.encode())
+        else:
+            self.request.send('wrong'.encode())
     # put代表用户需要存储文件，根据文件的类型（txt\jpg\video）执行不同的接收模式
     # get代表用户需要取文件，根据文件的类型（txt\jpg\video）执行不同的发送模式
     def handle(self):
         # 显示连接对象
+        
         print("get connection from :",self.client_address)
         while True:
             try:
@@ -107,29 +114,31 @@ class FileTcpServer(socketserver.BaseRequestHandler):
                     print("break the connection")
                     break                
                 else:
-                    
-                    action, filename, filetype = data.split()
-                    if action == "put":
-                        if filetype == 'txt':
-                            self.recvfile(filename)
-                        elif filetype == 'jpg':
-                            self.recvImage(filename)
-                        elif filetype == 'video':
-                            self.recvVideo(filename)
+                    if data.isspace():
+                        action, filename, filetype = data.split()
+                        if action == "put":
+                            if filetype == 'txt':
+                                self.recvfile(filename)
+                            elif filetype == 'jpg':
+                                self.recvImage(filename)
+                            elif filetype == 'video':
+                                self.recvVideo(filename)
+                            else:
+                                pass
+                        elif action == 'get':
+                            if filetype == 'txt':
+                                self.sendfile(filename)
+                            elif filetype == 'jpg':
+                                self.sendImage(filename)
+                            elif filetype == 'video':
+                                self.sendVideo(filename)
+                            else:
+                                pass 
                         else:
-                            pass
-                    elif action == 'get':
-                        if filetype == 'txt':
-                            self.sendfile(filename)
-                        elif filetype == 'jpg':
-                            self.sendImage(filename)
-                        elif filetype == 'video':
-                            self.sendVideo(filename)
-                        else:
-                            pass 
+                            print("get error when action!")
+                            continue
                     else:
-                        print("get error when action!")
-                        continue
+                        self.confirm(data)
             except Exception:
                 print("The client has quit! Over")
                 break
@@ -138,5 +147,6 @@ class FileTcpServer(socketserver.BaseRequestHandler):
 if __name__ == "__main__":
     host = '10.223.240.198'#192.168.1.103
     port = 1010
+    print("The server is running...")
     s = socketserver.ThreadingTCPServer((host,port), FileTcpServer)
     s.serve_forever()

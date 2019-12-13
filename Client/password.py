@@ -58,6 +58,7 @@ def encryption():
             if flag1==1:
 
                  break
+                
 
             flag0=0
 
