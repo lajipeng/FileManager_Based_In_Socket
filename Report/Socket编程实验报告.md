@@ -1,8 +1,113 @@
-### 实验代码模块设计和解析
+# Socket编程实验报告
+
+[TOC]
+
+### 1、实验原理
+
+#### 一、Socket提出背景
+
+无论是七层网络还是TCP/IP简化的五层网络，进行网络操作的两个进程，底层传输数据在同一机器上是没问题的，但在不同机器上是不行的
+
+网络协议各不相同，范式、接口各不相同，要建立一种通用机制支持多种协议
+
+基于以上两个原因，提出了socket
+
+Socket是应用层与TCP/IP协议族通信的中间软件抽象层，它是一组接口，打包了通信协议、地址、状态等 。相当于把运输层网络层链路层看做一个黑盒，我们只关心这个黑盒的输出或者说提供的服务
+
+Socket 的诞生是为了应用程序能够更方便的将数据经由传输层来传输，所以它本质上就是对 TCP/IP 的运用进行了一层封装，然后应用程序直接调用 socket API 即可进行通信。
+
+
+
+#### 二、Socket的分类
+
+1、流式套接字
+
+有连接服务，提供可靠的、面向连接的通信流。使用TCP协议，从而保证了数据传输的正确性和顺序性。提供了一个面向连接、可靠的数据传输服务，数据无差错、无重复地发送，且按发送顺序接收。通信流（像水流一样不停传输数据）严格遵循先来后到。
+
+面向连接服务：TCP协议提供面向连接的虚电路。建立了唯一的指定通信链路进行连接，于是数据传输过程中，各数据分组不携带目的地址，而使用连接号（connect ID）即管道号。
+
+2、数据报套接字
+
+无连接服务。各分组都携带完整的目的地址，在系统中独立传送。以独立包发送，不能保证分组的先后顺序，不进行分组出错的恢复与重传，不保证传输的可靠性。
+
+无连接服务：UDP协议提供无连接的数据报服务。只给你一个地址，不告诉你怎么走，丢了就丢了，顺序也不保证 。
+
+3、原始式套接字（SOCK_RAW）
+
+允许对底层协议如IP或ICMP进行直接访问。
+
+
+
+#### 三、相关概念解释
+
+1、流控制：传输速率过大，导致某些地方拥塞，使得网络质量与稳定性变差
+
+2、客户服务器模式：服务器要一直存在，去处理不同客户的请求
+
+3、地位：服务器端和客户端建立连接后，地位是平等的。双方都可以收发，而且用的函数是一样的。只有在建立连接之前，服务器端更加主导，因为它在listen
+
+4、shutdown：只是把套接字和两端的连接给断开，但还是存在且占用资源的
+
+5、bind：把套接口和端口连接就是用bind函数
+
+6、type：端口类型，使得套接字能够发送
+
+7、套接口，端口，套接字：一个套接口只能绑定一个端口（对应一个进程）；一个套接字要在两端都建立连接，当中是通信链路
+
+8、无连接协议：没有把本地套接字套接到对方，所以并没有建立全相关；也要先打开服务器端实现监听
+
+9、半相关：在本地建立了内部连接
+
+
+
+#### 四、TCP面向连接的协议
+
+##### 1、完整连接过程
+
+![image-20191221000629506](完整连接过程.png)
+
+
+
+服务器必须首先启动，直到它执行完accept()调用，进入等待状态后，方能接收客户请求。
+假如客户在此前启动，则connect()将返回出错代码，连接不成功 
+
+TCP/IP网络应用中，通信的两个进程间相互作用的主要模式是客户/服务器模式，即客户向服务器发出服务请求，服务器接收到请求后，提供相应的服务
+
+客户与服务器进程的作用是非对称的，服务器进程一般先于客户请求启动，并一直随系统运行而存在，直到被终止
+
+##### 2、面向连接的套接子系统调用时序图
+
+![image-20191221000845630](面向连接的套接子系统调用时序图.png)
+
+**服务器端**：
+
+1.打开一通信通道并告知本地主机，它愿意在某一公认地址上（如FTP为21）接收客户请求
+
+2.等待客户请求到达该端口
+
+3.接收到重复服务请求，处理该请求并发送应答信号。接收到并发服务请求时，要激活一新进程来处理这个客户请求（如UNIX系统中用fork、exec）。新进程处理此客户请求，并不需要对其它请求作出应答。服务完成后，关闭此新进程与客户的通信链路，并终止
+
+4.返回第二步，等待另一客户请求
+
+5.关闭服务器 
+
+**客户端**：
+
+1.打开一通信通道，并连接到服务器所在主机的特定端口
+
+2.向服务器发服务请求报文，等待并接收应答；继续提出请求
+
+3.请求结束后关闭通信链路并终止
+
+
+
+
+
+### 2、实验代码模块设计和解析
 
 本次实验采用面向对象编程的思想进行实验。我们定义了两个类：fileClient和fileServer
 
-#### FileClient：
+#### 一、FileClient
 
 - 初始化函数__init__(self)
 
@@ -177,7 +282,7 @@ def recvVideo(self, filename):
 
   
 
-#### fileServer
+#### 二、fileServer
 
 - 用户请求处理函数handle(self)
 
@@ -339,7 +444,7 @@ def sendVideo(self, filename):
           self.request.send('wrong'.encode())
   ```
 
-#### 握手方式
+#### 三、握手方式
 
 对于用户，我们使用了python的socket库；对于服务器，我们使用了python的socketserver库
 
@@ -356,7 +461,7 @@ s = socketserver.ThreadingTCPServer((host,port), FileTcpServer)
 s.serve_forever()
 ```
 
-#### 用户界面设计
+#### 四、用户界面设计
 
 为了使文件服务管理器更接近真实使用的情况，我们设置了登录名和登录密码，用户登录流程如下：
 
@@ -382,7 +487,7 @@ s.serve_forever()
 
 下面是对我们程序的详细解释:
 
-###### 主函数__main__()
+- 主函数__main__()
 
 ```python
 if __name__ == '__main__':
@@ -433,7 +538,7 @@ while True:
         print ('Wrong Username,enter again!')
 ```
 
-###### 输入密码加密函数encryption():
+- 输入密码加密函数encryption():
 
 ```python
 #密码星号打印
@@ -465,27 +570,25 @@ def encryption():
 
 
 
-### 实验结果
+### 3、实验结果
 
-###### 客户端：
+###### 一、客户端
 
 <img src="Client.png" alt="Client" style="zoom:70%;" />
 
-服务器端：
+###### 二、服务器端
 
 <img src="Server.png" alt="Client" style="zoom:100%;" />
 
-添加密码后的用户界面:
+###### 三、添加密码后的用户界面
 
 ![cipher](cipher.png)
 
-### 实验总结：
+### 4、实验总结
 
-王鹏:
+我们认为这是一次非常有意思的编程实验,我参考的书籍是计算机网络(自顶向下的方法).我们的做法流程是
 
-我认为这是一次非常有意思的编程实验,我参考的书籍是计算机网络(自顶向下的方法).我的做法流程是
-
-1 先让两台机器互相连接,这里我犯的最大一个错误是没有正确的输入IP地址,我之前采取的方法是百度直接搜索本地的IP地址,结果百度给我返回了我的路由器的IP地址,这显然是错误的,然而我并没有发现,这也是我为什么在使用指南强调了这一点,因为当我们向cmd输入ipconfig我们会同时收到多个ip地址,如果电脑使用wifi连接,那么应该选择无限局域网WLAN.
+1 先让两台机器互相连接,这里我们犯的最大一个错误是没有正确的输入IP地址,我们之前采取的方法是百度直接搜索本地的IP地址,结果百度给我们返回了我们的路由器的IP地址,这显然是错误的,然而我们并没有发现,这也是我为什么在使用指南强调了这一点,因为当我们向cmd输入ipconfig我们会同时收到多个ip地址,如果电脑使用wifi连接,那么应该选择无限局域网WLAN.
 
 2 先定一个小目标,实现传输文本.传输并不难,只要两台电脑握手成功后,数据传输就没有任何问题,关键问题出现在对数据的编解码,文本传输需要先转换为b''类型,然后收到数据后转换为字符串.但是比较坑的地方是f.write(data).这里的data需要先转换为b''才能进行写入.这是非常容易混淆的地方.
 
@@ -495,21 +598,26 @@ def encryption():
 
 5 用户密码输入和传输是我认为是文件管理服务器的一个比较重要的点,但是我认为还有很多地方可以完善,比如注册用户名和密码,其次可以添加验证码.然后服务器保管密码的方式也不对,按理讲,用户输入的密码服务器也不应该知道是什么,由于时间关系我并没有仔细研究,这和我们的课程学习也没有很大的关系.
 
-### 使用指南:
+### 5、使用指南
 
 - Download the two folders and same them respectively on two different machines
-- Go to the /Server and run the  **Run_me_to_activate_server.bat** which is used to run file_server.py. Now the server is running and thus the client can send request to the server.
-- Go to the /Client and run the **Run_me_to_login.bat** which is used to run file_client. Now the client is activated. Just follow the instructions.
-- Or find the **test.reference*.txt* in /Client 
 
-This is a test reference. You just need to input those content. If you type the wrong cipher, don't worry about it because you have three chances!
-Don't forget to change your IP address!
+- Change the IP address in the file_server.py. Here is the position! I recommend you should input **ipconfig** in a cmd window and then you could get the IP of host!  Remember that you should input the same IP address in the client-user-window.
 
-If  your computer is connecting the wifi, I recommend you to choose the follows(after you input "ipconfig" in cmd.exe)
+  ![ChangeIPinCode](ChangeIPinCode.png)
+
+- Go to the /Server and run the  **Run_me_to_activate_server.bat** which is used to run file_server.py before you have finished the above tips. Now the server is running and thus the client can send request to the server.
+
+- Go to the /Client and run the **Run_me_to_login.bat** which is used to run file_client.py Now the client is activated. Just follow the instructions.
+
+  This is a test reference. You just need to input those content. If you type the wrong cipher, don't worry about it because you have three chances!
+  Don't forget to change your IP address! Please note that this is the server IP . 
+
+  If  your computer is connecting the wifi, I recommend you to choose the follows(after you input "ipconfig" in cmd.exe)
 
 ![IPconfig](IPconfig.png)
 
-IP：192.168.1.103
+IP：10.223.240.198
 Username：Wang Peng
 PassWord：AA
 Command：put test1.txt txt
@@ -525,3 +633,6 @@ Command：Y
 Command：get test2.avi video
 
 Command：N
+
+- Untill now, congratulationsions!  you have done all the test! 
+- I would appreciate it if you could  give me a star.

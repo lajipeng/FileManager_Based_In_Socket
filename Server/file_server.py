@@ -93,6 +93,7 @@ class FileTcpServer(socketserver.BaseRequestHandler):
             print("send success")
         except:
             self.request.send('EOF'.encode())
+    # 服务器收到密码后将会和初始密码进行比对，如果相同则发送“right”
     def confirm(self,data):
         init_password = "AA"
         if data == init_password:
@@ -145,7 +146,7 @@ class FileTcpServer(socketserver.BaseRequestHandler):
                                            
                                        
 if __name__ == "__main__":
-    host = '10.223.240.198'#192.168.1.103
+    host = '192.168.1.102'#192.168.1.103 192.168.43.220
     port = 1010
     print("The server is running...")
     s = socketserver.ThreadingTCPServer((host,port), FileTcpServer)
