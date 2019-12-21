@@ -10,7 +10,7 @@ Use socket programming to implement a simple file server. The client program imp
 
 - Change the IP address in the file_server.py. Here is the position! I recommend you should input **ipconfig** in a cmd window and then you could get the IP of host!  Remember that you should input the same IP address in the client-user-window.
 
-  ![ChangeIPinCode](Report\ChangeIPinCode.png)
+  ![ChangeIPinCode](Report/ChangeIPinCode.png)
 
 - Go to the /Server and run the  **Run_me_to_activate_server.bat** which is used to run file_server.py before you have finished the above tips. Now the server is running and thus the client can send request to the server.
 
@@ -21,7 +21,7 @@ Use socket programming to implement a simple file server. The client program imp
 
   If  your computer is connecting the wifi, I recommend you to choose the follows(after you input "ipconfig" in cmd.exe)
 
-![IPconfig](Report\IPconfig.png)
+![IPconfig](Report/IPconfig.png)
 
 IP：10.223.240.198
 Username：Wang Peng
